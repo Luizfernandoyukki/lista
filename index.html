@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho de Compras</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        #product-list {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            flex-wrap: wrap; /* Permite que os produtos se movam para a próxima linha se necessário */
+        }
+        .product {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 30%;
+            margin: 10px; /* Adiciona espaçamento entre os produtos */
+        }
+        .product img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .product span {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .product button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            margin-bottom: 5px; /* Adiciona espaço entre os botões */
+        }
+        .product button:hover {
+            background-color: #218838;
+        }
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+        #cart {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        #cart h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #cart-items {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .cart-item img {
+            width: 50px;
+            height: auto;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        .cart-item span {
+            font-size: 16px;
+            color: #555;
+            flex-grow: 1;
+        }
+        #empty-cart {
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+        }
+        #add-product-form {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Loja de Produtos</h1>
+
+    <div id="product-list">
+        <!-- Produtos serão carregados aqui -->
+    </div>
+
+    <form id="add-product-form" onsubmit="addNewProduct(event)">
+        <input type="text" id="product-name" placeholder="Nome do Produto" required>
+        <input type="text" id="product-image" placeholder="URL da Imagem" required>
+        <button type="submit">Adicionar Produto</button>
+    </form>
+
+    <div id="cart">
+        <h2>Carrinho</h2>
+        <ul id="cart-items"></ul>
+    </div>
+
+    <script>
+        // Função para carregar os produtos do localStorage ao inicializar a página
+        function loadProducts() {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const div = document.createElement('div');
+                div.classList.add('product');
+
+                const img = document.createElement('img');
+                img.src = product.image;
+                img.alt = product.name;
+
+                const span = document.createElement('span');
+                span.textContent = product.name;
+
+                const addButton = document.createElement('button');
+                addButton.textContent = 'Adicionar ao Carrinho';
+                addButton.onclick = () => addToCart(product.name, product.image);
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remover do Catálogo';
+                removeButton.classList.add('remove-btn');
+                removeButton.onclick = () => removeProduct(index);
+
+                div.appendChild(img);
+                div.appendChild(span);
+                div.appendChild(addButton);
+                div.appendChild(removeButton);
+                productList.appendChild(div);
+            });
+        }
+
+        // Função para adicionar novos produtos ao catálogo
+        function addNewProduct(event) {
+            event.preventDefault();
+            const productName = document.getElementById('product-name').value;
+            const productImage = document.getElementById('product-image').value;
+
+            // Verifica se o produto já existe
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const productExists = products.some(product => product.name.toLowerCase() === productName.toLowerCase());
+
+            if (productExists) {
+                alert('Este produto já está no catálogo!');
+                return;
+            }
+
+            // Adiciona o novo produto
+            products.push({ name: productName, image: productImage });
+            localStorage.setItem('products', JSON.stringify(products));
+            loadProducts(); // Atualiza a lista de produtos
+            document.getElementById('add-product-form').reset(); // Limpa o formulário
+        }
+
+        // Função para remover produtos do catálogo
+        function removeProduct(index) {
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            products.splice(index, 1);  // Remove o item pelo índice
+            localStorage.setItem('products', JSON.stringify(products));
+            loadProducts();  // Atualiza a lista de produtos exibida na página
+        }
+
+        // Função para carregar o carrinho ao inicializar a página
+        function loadCart() {
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartList = document.getElementById('cart-items');
+            cartList.innerHTML = '';
+
+            if (cartItems.length === 0) {
+                cartList.innerHTML = '<p id="empty-cart">O carrinho está vazio</p>';
+            }
+
+            cartItems.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.classList.add('cart-item');
+
+                // Imagem do produto
+                const productImage = document.createElement('img');
+                productImage.src = item.image;
+                productImage.alt = item.name;
+
+                // Texto do produto
+                const productText = document.createElement('span');
+                productText.textContent = item.name;
+
+                // Botão de remover
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remover';
+                removeBtn.classList.add('remove-btn');
+                removeBtn.onclick = () => removeFromCart(index);
+
+                li.appendChild(productImage);
+                li.appendChild(productText);
+                li.appendChild(removeBtn);
+                cartList.appendChild(li);
+            });
+        }
+
+        // Função para adicionar produtos ao carrinho e salvar no localStorage
+        function addToCart(productName, productImage) {
+            let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            cartItems.push({ name: productName, image: productImage });
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+            loadCart();  // Atualiza o carrinho exibido na página
+        }
+
+        // Função para remover produtos do carrinho e atualizar o localStorage
+        function removeFromCart(index) {
+            let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            cartItems.splice(index, 1);  // Remove o item pelo índice
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+            loadCart();  // Atualiza o carrinho exibido na página
+        }
+
+        // Carregar os produtos e o carrinho ao inicializar a página
+        window.onload = function() {
+            loadProducts();
+            loadCart();
+        };
+    </script>
+
+</body>
+</html>
